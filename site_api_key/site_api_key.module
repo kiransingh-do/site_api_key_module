@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Implements hook_form_alter().
+ */
+function site_api_key_form_system_site_information_settings_alter(&$form, $form_state, $form_id) {
+  // Add Site API Key field to 'Site Information' section.
+  $site_api_key = \Drupal::config('siteapikey.configuration')->get('siteapikey');
+  $form['site_information']['site_api_key'] = [
+    '#type' => 'textfield',
+    '#title' => t('Site API Key'),
+    '#default_value' => $site_api_key,
+    '#description' => t('An API Key to access site pages in JSON format.'),
+    '#placeholder' => t('No API Key yet'),
+  ];
+
+  // Change 'Save configuration' button text to 'Update Configuration'.
+  $form['actions']['submit']['#value'] = t('Update configuration');
+  // Form submission.
+  $form['#submit'][] = 'site_api_key_handler';
+}
+
+/**
+ * Form Submit.
+ */
+function site_api_key_handler($form, &$form_state) {
+  // Update the system variable Site API Key.
+  $config = \Drupal::configFactory()->getEditable('siteapikey.configuration');
+  $new_site_api_key = $form_state->getValue(['site_api_key']);
+  $config->set('siteapikey', $new_site_api_key);
+  $config->save();
+  if ($new_site_api_key) {
+    // Add message that Site API Key has been set.
+    drupal_set_message("Site API Key has been saved with " . $new_site_api_key . ".");
+  }
+}
